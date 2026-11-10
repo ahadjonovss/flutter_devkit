@@ -3,11 +3,19 @@ import 'package:dio/dio.dart';
 import 'package:flutter_devkit/src/devkit.dart';
 import 'package:flutter_devkit/src/scenarios/scenarios.dart';
 
+/// Dio interceptor that adds the selected case's headers to matching
+/// requests.
+///
+/// Add it after auth and before logging. Requests pass through untouched while
+/// DevKit is disabled or nothing is selected for their route.
 class ScenarioInterceptor extends Interceptor {
+  /// Uses [scenarios], or `DevKit.scenarios` when null, and logs through [log],
+  /// or `DevKit.log` when null.
   ScenarioInterceptor({Scenarios? scenarios, void Function(String message)? log})
-      : _scenarios = scenarios ?? DevKit.scenarios,
-        _log = log ?? DevKit.log;
+    : _scenarios = scenarios ?? DevKit.scenarios,
+      _log = log ?? DevKit.log;
 
+  /// Key of the `route → case` tag in `options.extra` and `response.extra`.
   static const String extraKey = 'devkit.scenario';
 
   final Scenarios _scenarios;

@@ -6,9 +6,16 @@ import 'package:flutter_devkit/src/panel/devkit_theme.dart';
 import 'package:flutter_devkit/src/scenarios/scenario_cubit.dart';
 import 'package:flutter_devkit/src/scenarios/scenario_page.dart';
 
+/// Shows a warning strip above [child] while any route is overridden.
+///
+/// Use it in `MaterialApp.builder`. Tapping the strip opens the scenarios page
+/// through `DevKit.navigatorKey`. Renders only [child] while DevKit is
+/// disabled.
 class ScenarioBanner extends StatelessWidget {
+  /// Wraps [child].
   const ScenarioBanner({super.key, required this.child});
 
+  /// The app below the strip.
   final Widget child;
 
   @override
@@ -26,11 +33,7 @@ class ScenarioBanner extends StatelessWidget {
           children: [
             if (visible) _Strip(count: state.count),
             Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: visible,
-                child: child,
-              ),
+              child: MediaQuery.removePadding(context: context, removeTop: visible, child: child),
             ),
           ],
         );
@@ -58,11 +61,7 @@ class _Strip extends StatelessWidget {
             child: Center(
               child: Text(
                 '$count route(s) overridden · tap to change',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
           ),

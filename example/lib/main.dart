@@ -26,8 +26,8 @@ void main() {
     DevKitItem(
       title: 'Say hello',
       icon: Icons.waving_hand_outlined,
-      onTap: (context) => ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Hello from a host item'))),
+      onTap: (context) =>
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hello from a host item'))),
     ),
   );
 
@@ -74,10 +74,7 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         appBar: AppBar(title: const Text('DevKit example')),
         body: Center(child: Text(_result)),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _send,
-          label: const Text('Send request'),
-        ),
+        floatingActionButton: FloatingActionButton.extended(onPressed: _send, label: const Text('Send request')),
       ),
     );
   }

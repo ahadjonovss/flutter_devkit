@@ -9,11 +9,15 @@ import 'package:flutter_devkit/src/scenarios/scenario_page.dart';
 import 'package:flutter_devkit/src/panel/devkit_item.dart';
 import 'package:flutter_devkit/src/panel/devkit_theme.dart';
 
+/// The dev panel: built-in tools and the host's items.
 class DevKitPanel extends StatelessWidget {
+  /// Creates the panel; items open their pages from [hostContext].
   const DevKitPanel({super.key, required this.hostContext});
 
+  /// Context the panel was opened from, still valid after it closes.
   final BuildContext hostContext;
 
+  /// Opens the panel as a modal bottom sheet.
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -43,10 +47,7 @@ class DevKitPanel extends StatelessWidget {
               Container(
                 width: 36,
                 height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
               ),
               const SizedBox(height: 8),
               if (hasScenarios)
@@ -56,9 +57,7 @@ class DevKitPanel extends StatelessWidget {
                   subtitle: BlocBuilder<ScenarioCubit, ScenarioState>(
                     bloc: DevKit.scenarios.cubit,
                     builder: (_, state) => Text(
-                      state.count == 0
-                          ? 'All routes hit the real backend'
-                          : '${state.count} route(s) overridden',
+                      state.count == 0 ? 'All routes hit the real backend' : '${state.count} route(s) overridden',
                     ),
                   ),
                   onTap: () {
@@ -92,10 +91,7 @@ class DevKitPanel extends StatelessWidget {
   Widget _buildItem(BuildContext context, DevKitItem item) {
     final builder = item.builder;
     if (builder != null) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: builder(context),
-      );
+      return Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), child: builder(context));
     }
     return ListTile(
       leading: item.icon == null ? null : Icon(item.icon),

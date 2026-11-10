@@ -41,8 +41,7 @@ class _FilterBar extends StatelessWidget {
                       onSelected: (_) => cubit.setStatus(entry.key),
                     ),
                   ),
-                if (state.methods.isNotEmpty)
-                  const SizedBox(height: 24, child: VerticalDivider(width: 16)),
+                if (state.methods.isNotEmpty) const SizedBox(height: 24, child: VerticalDivider(width: 16)),
                 for (final method in state.methods)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),

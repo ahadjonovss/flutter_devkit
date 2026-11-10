@@ -1,3 +1,8 @@
+## 0.1.1
+
+- Document the whole public API.
+- Set the formatter page width to 120 in `analysis_options.yaml`.
+
 ## 0.1.0
 
 - First release.

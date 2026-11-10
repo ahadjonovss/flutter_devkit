@@ -9,15 +9,22 @@ part 'components/body_view.dart';
 part 'components/headers_section.dart';
 part 'components/overview_section.dart';
 
+/// Request and response details of one record, with copy actions.
 class InspectorDetailPage extends StatelessWidget {
+  /// Shows the record with [id].
   const InspectorDetailPage({super.key, required this.id});
 
+  /// Id of the record to show.
   final int id;
 
+  /// Pushes the page for the record with [id].
   static Future<void> open(BuildContext context, int id) {
     return Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => Theme(data: devKitTheme, child: InspectorDetailPage(id: id)),
+        builder: (_) => Theme(
+          data: devKitTheme,
+          child: InspectorDetailPage(id: id),
+        ),
       ),
     );
   }
@@ -55,7 +62,12 @@ class InspectorDetailPage extends StatelessWidget {
                   onPressed: () => _copy(context, record.toText(), 'Request copied'),
                 ),
               ],
-              bottom: const TabBar(tabs: [Tab(text: 'Request'), Tab(text: 'Response')]),
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'Request'),
+                  Tab(text: 'Response'),
+                ],
+              ),
             ),
             body: TabBarView(
               children: [

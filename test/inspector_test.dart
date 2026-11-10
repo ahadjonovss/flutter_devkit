@@ -4,13 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 HttpRecord _record(int id, {String method = 'GET', String url = 'https://h.test/a', int? status}) {
-  final record = HttpRecord(
-    id: id,
-    method: method,
-    url: url,
-    startedAt: DateTime(2026),
-    requestHeaders: const [],
-  );
+  final record = HttpRecord(id: id, method: method, url: url, startedAt: DateTime(2026), requestHeaders: const []);
   return status == null ? record : record.complete(statusCode: status);
 }
 
@@ -112,13 +106,18 @@ void main() {
     });
 
     test('redacts the url, headers and bodies', () async {
-      await dioReturning('secret', redact: (s) => s.replaceAll('secret', '***'))
-          .get<String>('/secret', options: Options(headers: {'X-Token': 'secret'}));
+      await dioReturning(
+        'secret',
+        redact: (s) => s.replaceAll('secret', '***'),
+      ).get<String>('/secret', options: Options(headers: {'X-Token': 'secret'}));
       final record = store.records.single;
       expect(record.url, 'https://h.test/***');
-      expect(record.requestHeaders, contains(isA<MapEntry<String, String>>()
-          .having((e) => e.key, 'key', 'X-Token')
-          .having((e) => e.value, 'value', '***')));
+      expect(
+        record.requestHeaders,
+        contains(
+          isA<MapEntry<String, String>>().having((e) => e.key, 'key', 'X-Token').having((e) => e.value, 'value', '***'),
+        ),
+      );
       expect(record.responseBody, '***');
     });
 
@@ -130,8 +129,7 @@ void main() {
 
     test('redacts a secret that straddles the cut', () async {
       final body = '${'a' * 95}secret${'b' * 1000}';
-      await dioReturning(body, maxBodyLength: 100, redact: (s) => s.replaceAll('secret', '******'))
-          .get<String>('/a');
+      await dioReturning(body, maxBodyLength: 100, redact: (s) => s.replaceAll('secret', '******')).get<String>('/a');
       expect(store.records.single.responseBody, startsWith('${'a' * 95}*****'));
     });
 
@@ -149,7 +147,11 @@ class _Adapter implements HttpClientAdapter {
   final Object body;
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
     return ResponseBody.fromString('$body', 200);
   }
 

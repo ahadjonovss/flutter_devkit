@@ -10,18 +10,18 @@ import 'package:flutter_devkit/src/panel/devkit_theme.dart';
 part 'components/filter_bar.dart';
 part 'components/record_tile.dart';
 
+/// List of recorded requests with URL search and status and method filters.
 class InspectorPage extends StatelessWidget {
+  /// Creates the page; it expects an `InspectorCubit` above it, so prefer [open].
   const InspectorPage({super.key});
 
+  /// Pushes the inspector on the root navigator.
   static Future<void> open(BuildContext context) {
     return Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         builder: (_) => Theme(
           data: devKitTheme,
-          child: BlocProvider(
-            create: (_) => InspectorCubit(DevKit.inspector),
-            child: const InspectorPage(),
-          ),
+          child: BlocProvider(create: (_) => InspectorCubit(DevKit.inspector), child: const InspectorPage()),
         ),
       ),
     );
@@ -36,12 +36,7 @@ class InspectorPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('HTTP inspector'),
-            actions: [
-              TextButton(
-                onPressed: state.records.isEmpty ? null : cubit.clear,
-                child: const Text('Clear'),
-              ),
-            ],
+            actions: [TextButton(onPressed: state.records.isEmpty ? null : cubit.clear, child: const Text('Clear'))],
           ),
           body: Column(
             children: [

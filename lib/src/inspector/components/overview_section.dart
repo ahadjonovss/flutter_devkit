@@ -11,11 +11,7 @@ class _OverviewSection extends StatelessWidget {
     final rows = <(String, String, Color?)>[
       ('URL', record.url, null),
       ('Method', record.method, null),
-      (
-        'Status',
-        record.isPending ? 'pending' : record.statusCode?.toString() ?? 'failed',
-        devKitStatusColor(record),
-      ),
+      ('Status', record.isPending ? 'pending' : record.statusCode?.toString() ?? 'failed', devKitStatusColor(record)),
       ('Time', devKitTime(record.startedAt), null),
       if (record.duration != null) ('Duration', '${record.duration!.inMilliseconds} ms', null),
       if (record.scenario != null) ('Scenario', record.scenario!, devKitWarningColor),

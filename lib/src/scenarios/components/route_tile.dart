@@ -1,11 +1,7 @@
 part of '../scenario_page.dart';
 
 class _RouteTile extends StatelessWidget {
-  const _RouteTile({
-    required this.route,
-    required this.selectedCaseId,
-    required this.onChanged,
-  });
+  const _RouteTile({required this.route, required this.selectedCaseId, required this.onChanged});
 
   final ScenarioRoute route;
   final String? selectedCaseId;
@@ -22,10 +18,7 @@ class _RouteTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            route.label,
-            style: theme.textTheme.titleSmall?.copyWith(fontFamily: 'monospace'),
-          ),
+          Text(route.label, style: theme.textTheme.titleSmall?.copyWith(fontFamily: 'monospace')),
           const SizedBox(height: 8),
           DropdownButtonFormField<String?>(
             key: ValueKey('${route.id}:${selected?.id}'),
@@ -35,21 +28,13 @@ class _RouteTile extends StatelessWidget {
               isDense: true,
               border: const OutlineInputBorder(),
               enabledBorder: overridden
-                  ? const OutlineInputBorder(
-                      borderSide: BorderSide(color: devKitWarningColor, width: 1.5),
-                    )
+                  ? const OutlineInputBorder(borderSide: BorderSide(color: devKitWarningColor, width: 1.5))
                   : null,
             ),
             items: [
-              const DropdownMenuItem<String?>(
-                value: null,
-                child: Text('Real backend'),
-              ),
+              const DropdownMenuItem<String?>(value: null, child: Text('Real backend')),
               for (final scenario in route.cases)
-                DropdownMenuItem<String?>(
-                  value: scenario.id,
-                  child: Text(scenario.label),
-                ),
+                DropdownMenuItem<String?>(value: scenario.id, child: Text(scenario.label)),
             ],
             onChanged: onChanged,
           ),

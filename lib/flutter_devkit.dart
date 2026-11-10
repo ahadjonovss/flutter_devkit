@@ -1,3 +1,12 @@
+/// In-app developer tools for Flutter apps that talk to their backend through
+/// Dio: a dev panel with host-registered items, an HTTP inspector, and
+/// per-route backend scenario switching for QA.
+///
+/// Start with [DevKit.init], add [ScenarioInterceptor] and
+/// [InspectorInterceptor] to your Dio client, and open the panel with
+/// [DevKit.show].
+library;
+
 export 'package:flutter_devkit/src/devkit.dart';
 export 'package:flutter_devkit/src/inspector/http_record.dart';
 export 'package:flutter_devkit/src/inspector/inspector_interceptor.dart';

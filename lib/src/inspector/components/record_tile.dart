@@ -10,9 +10,7 @@ class _RecordTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mono = theme.textTheme.bodyMedium?.copyWith(fontFamily: 'monospace');
-    final status = record.isPending
-        ? '…'
-        : record.statusCode?.toString() ?? 'ERR';
+    final status = record.isPending ? '…' : record.statusCode?.toString() ?? 'ERR';
 
     return InkWell(
       onTap: onTap,
@@ -25,10 +23,7 @@ class _RecordTile extends StatelessWidget {
               width: 40,
               child: Text(
                 status,
-                style: mono?.copyWith(
-                  color: devKitStatusColor(record),
-                  fontWeight: FontWeight.bold,
-                ),
+                style: mono?.copyWith(color: devKitStatusColor(record), fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(width: 8),
@@ -36,12 +31,7 @@ class _RecordTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${record.method} ${record.path}',
-                    style: mono,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text('${record.method} ${record.path}', style: mono, maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Row(
                     children: [

@@ -7,13 +7,20 @@ import 'package:flutter_devkit/src/inspector/http_record.dart';
 import 'package:flutter_devkit/src/inspector/inspector_store.dart';
 import 'package:flutter_devkit/src/scenarios/scenario_interceptor.dart';
 
+/// Dio interceptor that records each request and its response in an
+/// [InspectorStore].
+///
+/// Add it after `ScenarioInterceptor` so it sees scenario headers and tags.
+/// Nothing is recorded while DevKit is disabled.
 class InspectorInterceptor extends Interceptor {
-  InspectorInterceptor({
-    InspectorStore? store,
-    String Function(String value)? redact,
-    this.maxBodyLength = 64 * 1024,
-  })  : _store = store ?? DevKit.inspector,
-        _redact = redact ?? _identity {
+  /// Records into [store], or `DevKit.inspector` when null.
+  ///
+  /// [redact] runs on the URL, each `name: value` header line, both bodies and
+  /// the error text before anything is stored. Bodies are cut at
+  /// [maxBodyLength] characters.
+  InspectorInterceptor({InspectorStore? store, String Function(String value)? redact, this.maxBodyLength = 64 * 1024})
+    : _store = store ?? DevKit.inspector,
+      _redact = redact ?? _identity {
     _store.attach();
   }
 
@@ -21,6 +28,8 @@ class InspectorInterceptor extends Interceptor {
 
   final InspectorStore _store;
   final String Function(String value) _redact;
+
+  /// Longest body kept, in characters; longer bodies are truncated.
   final int maxBodyLength;
 
   @override
@@ -28,15 +37,17 @@ class InspectorInterceptor extends Interceptor {
     if (_store.enabled) {
       final id = _store.nextId();
       options.extra[_idKey] = id;
-      _store.add(HttpRecord(
-        id: id,
-        method: options.method,
-        url: _redact(options.uri.toString()),
-        startedAt: DateTime.now(),
-        requestHeaders: _headers(options.headers.map((k, v) => MapEntry(k, '$v'))),
-        requestBody: _body(options.data),
-        scenario: options.extra[ScenarioInterceptor.extraKey] as String?,
-      ));
+      _store.add(
+        HttpRecord(
+          id: id,
+          method: options.method,
+          url: _redact(options.uri.toString()),
+          startedAt: DateTime.now(),
+          requestHeaders: _headers(options.headers.map((k, v) => MapEntry(k, '$v'))),
+          requestBody: _body(options.data),
+          scenario: options.extra[ScenarioInterceptor.extraKey] as String?,
+        ),
+      );
     }
     handler.next(options);
   }
@@ -50,11 +61,7 @@ class InspectorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final message = err.message;
-    _complete(
-      err.requestOptions,
-      err.response,
-      error: message == null ? err.type.name : '${err.type.name}: $message',
-    );
+    _complete(err.requestOptions, err.response, error: message == null ? err.type.name : '${err.type.name}: $message');
     handler.next(err);
   }
 
@@ -63,20 +70,20 @@ class InspectorInterceptor extends Interceptor {
     if (id is! int) return;
     final record = _store.byId(id);
     if (record == null) return;
-    _store.update(record.complete(
-      statusCode: response?.statusCode,
-      responseHeaders: response == null
-          ? const []
-          : _headers(response.headers.map.map((k, v) => MapEntry(k, v.join(', ')))),
-      responseBody: _body(response?.data),
-      error: error == null ? null : _redact(error),
-    ));
+    _store.update(
+      record.complete(
+        statusCode: response?.statusCode,
+        responseHeaders: response == null
+            ? const []
+            : _headers(response.headers.map.map((k, v) => MapEntry(k, v.join(', ')))),
+        responseBody: _body(response?.data),
+        error: error == null ? null : _redact(error),
+      ),
+    );
   }
 
   RecordHeaders _headers(Map<String, String> headers) {
-    return [
-      for (final entry in headers.entries) _splitHeader(_redact('${entry.key}: ${entry.value}')),
-    ];
+    return [for (final entry in headers.entries) _splitHeader(_redact('${entry.key}: ${entry.value}'))];
   }
 
   MapEntry<String, String> _splitHeader(String line) {

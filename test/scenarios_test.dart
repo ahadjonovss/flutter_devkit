@@ -49,7 +49,9 @@ void main() {
 
     test('rejects a duplicate case id within a route', () {
       expect(
-        () => ScenarioRegistry().register([_route('a', cases: ['x', 'x'])]),
+        () => ScenarioRegistry().register([
+          _route('a', cases: ['x', 'x']),
+        ]),
         throwsStateError,
       );
     });
@@ -87,7 +89,9 @@ void main() {
 
     setUp(() {
       scenarios = Scenarios(isEnabled: () => true)
-        ..register([_route('r', match: RouteMatcher.exact('/r'), cases: ['a', 'b'])]);
+        ..register([
+          _route('r', match: RouteMatcher.exact('/r'), cases: ['a', 'b']),
+        ]);
       sent = [];
       dio = Dio(BaseOptions(baseUrl: 'https://h.test'))
         ..httpClientAdapter = _Adapter(sent)
@@ -126,7 +130,11 @@ class _Adapter implements HttpClientAdapter {
   final List<RequestOptions> sent;
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
     sent.add(options);
     return ResponseBody.fromString('ok', 200);
   }
