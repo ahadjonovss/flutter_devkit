@@ -98,4 +98,48 @@ void main() {
     expect(response!.data!['users'], hasLength(1));
     DevKit.scenarios.removeCustomRoute(route.id);
   });
+
+  testWidgets('the menu copies JSON without ScenarioFiles and saves a file with them', (tester) async {
+    DevKit.scenarios.addCustomCase(
+      match: RouteMatcher.exact('/f'),
+      label: '/f',
+      scenario: const ScenarioCase(id: 'a', label: 'A', mock: ScenarioMock()),
+    );
+    await pumpApp(tester);
+    ScenarioPage.open(navigatorKey.currentContext!);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    expect(find.text('Copy as JSON'), findsOneWidget);
+    expect(find.text('Import from file'), findsNothing);
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
+
+    final files = _Files();
+    DevKit.scenarios.files = files;
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export as file'));
+    await tester.pumpAndSettle();
+    expect(files.saved?.$1, 'devkit_scenarios.json');
+    expect(files.saved?.$2, contains('"pattern": "/f"'));
+    expect(find.text('1 route(s) exported'), findsOneWidget);
+
+    DevKit.scenarios.files = null;
+    DevKit.scenarios.removeCustomRoute(DevKit.scenarios.customRoutes.single.id);
+  });
+}
+
+class _Files implements ScenarioFiles {
+  (String, String)? saved;
+
+  @override
+  Future<bool> save(String fileName, String json) async {
+    saved = (fileName, json);
+    return true;
+  }
+
+  @override
+  Future<String?> pick() async => null;
 }

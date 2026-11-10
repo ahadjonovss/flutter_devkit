@@ -34,6 +34,9 @@ class Scenarios extends ChangeNotifier {
   /// Where custom routes are saved.
   ScenarioStorage storage;
 
+  /// Saves and opens scenario files; null leaves only copy and paste.
+  ScenarioFiles? files;
+
   /// Receives save failures; `DevKit.init` points it at `DevKit.log`.
   void Function(String message) log = debugPrint;
 

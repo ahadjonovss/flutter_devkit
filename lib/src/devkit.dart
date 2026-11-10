@@ -48,6 +48,8 @@ abstract final class DevKit {
   /// - [inspectorCapacity]: how many requests [inspector] keeps (default 100).
   /// - [scenarioStorage]: where scenarios added at runtime are saved. Defaults
   ///   to `SharedPreferences`.
+  /// - [scenarioFiles]: lets the scenarios page export and import `.json`
+  ///   files. Without it, scenarios are shared by copying and pasting JSON.
   ///
   /// When enabled, starts loading the saved scenarios; they appear once read.
   static void init({
@@ -56,6 +58,7 @@ abstract final class DevKit {
     DevKitLogger? log,
     int? inspectorCapacity,
     ScenarioStorage? scenarioStorage,
+    ScenarioFiles? scenarioFiles,
   }) {
     if (_initialized) {
       throw StateError('DevKit.init() can only be called once.');
@@ -66,6 +69,7 @@ abstract final class DevKit {
     if (log != null) _log = log;
     if (inspectorCapacity != null) inspector.capacity = inspectorCapacity;
     if (scenarioStorage != null) scenarios.storage = scenarioStorage;
+    scenarios.files = scenarioFiles;
     scenarios.log = DevKit.log;
     if (enabled) {
       unawaited(scenarios.load().catchError((Object e) => DevKit.log('Could not load saved scenarios: $e')));

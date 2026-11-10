@@ -1,3 +1,8 @@
+## 0.3.0
+
+- `file_picker` is no longer a dependency, so no file plugin reaches the host's builds. Export and import of `.json` files now go through a `ScenarioFiles` the host passes to `DevKit.init(scenarioFiles: ...)`; the README has a file_picker implementation, and the example app uses it.
+- Without `scenarioFiles`, the scenarios page offers **Copy as JSON** and **Paste JSON**.
+
 ## 0.2.0
 
 - Scenarios can be added on the device: **Add scenario** on a recorded request (or on the scenarios page) opens a form prefilled from the request. A case is either a mock response or request headers.

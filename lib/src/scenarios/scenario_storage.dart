@@ -23,3 +23,18 @@ class SharedPreferencesScenarioStorage implements ScenarioStorage {
   @override
   Future<void> write(String json) async => (await SharedPreferences.getInstance()).setString(key, json);
 }
+
+/// Saves and opens scenario files for the scenarios page, so QA can share
+/// scenarios as `.json` files.
+///
+/// DevKit ships no file plugin of its own. Implement this with the plugin of
+/// your choice (the README shows one built on `file_picker`) and pass it to
+/// `DevKit.init`; without it the page copies and pastes JSON instead.
+abstract interface class ScenarioFiles {
+  /// Saves [json] as a file named [fileName]. Returns false when the user
+  /// cancelled.
+  Future<bool> save(String fileName, String json);
+
+  /// Lets the user pick a file and returns its text, or null when cancelled.
+  Future<String?> pick();
+}

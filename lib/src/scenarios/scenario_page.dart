@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_devkit/src/devkit.dart';
 import 'package:flutter_devkit/src/panel/devkit_theme.dart';
 import 'package:flutter_devkit/src/scenarios/scenario.dart';
 import 'package:flutter_devkit/src/scenarios/scenario_cubit.dart';
-import 'package:flutter_devkit/src/scenarios/file/write_file_stub.dart'
-    if (dart.library.io) 'package:flutter_devkit/src/scenarios/file/write_file_io.dart';
 import 'package:flutter_devkit/src/scenarios/scenario_form_page.dart';
+import 'package:flutter_devkit/src/scenarios/scenario_storage.dart';
 
 part 'components/route_tile.dart';
 
@@ -48,35 +44,23 @@ class _ScenarioPageState extends State<ScenarioPage> {
     final scenarios = DevKit.scenarios;
     final count = scenarios.customRoutes.length;
     if (count == 0) return _snack('No custom scenarios to export');
-    final bytes = utf8.encode(scenarios.exportCustom());
+    final files = scenarios.files;
+    if (files == null) {
+      await Clipboard.setData(ClipboardData(text: scenarios.exportCustom()));
+      return _snack('$count route(s) copied as JSON');
+    }
     try {
-      final path = await FilePicker.platform.saveFile(
-        dialogTitle: 'Export scenarios',
-        fileName: 'devkit_scenarios.json',
-        type: FileType.custom,
-        allowedExtensions: const ['json'],
-        bytes: bytes,
-      );
-      // The web downloads the file and returns no path.
-      if (path == null && !kIsWeb) return;
-      if (path != null) await writePickedFile(path, bytes);
-      _snack('$count route(s) exported');
+      if (await files.save('devkit_scenarios.json', scenarios.exportCustom())) _snack('$count route(s) exported');
     } on Object catch (e) {
       _snack('Could not export: $e');
     }
   }
 
-  Future<void> _importFile() async {
+  Future<void> _importFile(ScenarioFiles files) async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        dialogTitle: 'Import scenarios',
-        type: FileType.custom,
-        allowedExtensions: const ['json'],
-        withData: true,
-      );
-      final bytes = result?.files.singleOrNull?.bytes;
-      if (bytes == null) return;
-      _reportImport(DevKit.scenarios.importCustom(utf8.decode(bytes)));
+      final json = await files.pick();
+      if (json == null) return;
+      _reportImport(DevKit.scenarios.importCustom(json));
     } on FormatException catch (e) {
       _snack('Not a DevKit scenarios file: ${e.message.replaceFirst('DevKit: ', '')}');
     } on Object catch (e) {
@@ -155,12 +139,17 @@ class _ScenarioPageState extends State<ScenarioPage> {
           PopupMenuButton<void Function()>(
             tooltip: 'More',
             onSelected: (action) => action(),
-            itemBuilder: (_) => [
-              _menuItem(_importFile, Icons.file_open_outlined, 'Import from file'),
-              _menuItem(_importText, Icons.content_paste_rounded, 'Paste JSON'),
-              const PopupMenuDivider(),
-              _menuItem(_export, Icons.save_alt_rounded, 'Export as file'),
-            ],
+            itemBuilder: (_) {
+              final files = scenarios.files;
+              return [
+                if (files != null) _menuItem(() => _importFile(files), Icons.file_open_outlined, 'Import from file'),
+                _menuItem(_importText, Icons.content_paste_rounded, 'Paste JSON'),
+                const PopupMenuDivider(),
+                files == null
+                    ? _menuItem(_export, Icons.copy_all_rounded, 'Copy as JSON')
+                    : _menuItem(_export, Icons.save_alt_rounded, 'Export as file'),
+              ];
+            },
           ),
         ],
       ),

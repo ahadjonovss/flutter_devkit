@@ -2,13 +2,15 @@ import 'package:flutter_devkit/flutter_devkit.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import 'scenario_files.dart';
+
 final navigatorKey = GlobalKey<NavigatorState>();
 
 final dio = Dio(BaseOptions(baseUrl: 'https://httpbin.org'))
   ..interceptors.addAll([ScenarioInterceptor(), InspectorInterceptor()]);
 
 void main() {
-  DevKit.init(enabled: true, navigatorKey: navigatorKey);
+  DevKit.init(enabled: true, navigatorKey: navigatorKey, scenarioFiles: const FilePickerScenarioFiles());
 
   DevKit.scenarios.register([
     ScenarioRoute(

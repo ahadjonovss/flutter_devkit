@@ -8,7 +8,7 @@ In-app developer tools for Flutter apps that talk to their backend through [Dio]
 
 ```yaml
 dependencies:
-  flutter_devkit: ^0.2.0
+  flutter_devkit: ^0.3.0
 ```
 
 ```dart
@@ -28,6 +28,7 @@ DevKit.init(
   log: (m) => myLogger.warning(m), // optional, defaults to debugPrint
   inspectorCapacity: 200,          // optional, how many requests the inspector keeps (default 100)
   scenarioStorage: myStorage,      // optional, where scenarios added on the device are saved (default SharedPreferences)
+  scenarioFiles: myFiles,          // optional, export/import .json files (see "Scenario files")
 );
 ```
 
@@ -137,10 +138,47 @@ QA can add scenarios without touching the code:
 - In the HTTP inspector, open a request and tap **Add scenario**. The form is filled in from the request: method, path, and the recorded status, headers and body. The case is either a **mock response** (edit the status, headers, body and delay) or a set of **headers** for the backend. **Add scenario** on the scenarios page opens the same form, empty.
 - A case whose method and path match an existing custom route joins that route. Otherwise a new route is created. Custom routes are tagged **CUSTOM**, can be deleted from their menu, and win over a route from the code that matches the same request.
 - Custom routes are saved with `SharedPreferences` and come back on the next launch (pass `scenarioStorage` to `DevKit.init` to keep them somewhere else). Selections are still not saved.
-- The scenarios page menu has **Export as file** (`devkit_scenarios.json`), **Import from file** and **Paste JSON**, so a set of scenarios can be shared across devices and testers. When an imported route has the id of a custom route, it replaces that route. When its id belongs to a route from the code, it is skipped.
+- To share scenarios across devices and testers, use the scenarios page menu: **Copy as JSON** and **Paste JSON**. When an imported route has the id of a custom route, it replaces that route. When its id belongs to a route from the code, it is skipped.
 - The same works from code: `DevKit.scenarios.exportCustom()` and `importCustom(json)`.
 
-Files are picked and saved with [file_picker](https://pub.dev/packages/file_picker). On macOS the app needs the `com.apple.security.files.user-selected.read-write` entitlement.
+#### Scenario files (optional)
+
+DevKit adds no file plugin to your app (its only plugin is `shared_preferences`). To export and import `.json` files instead of copying JSON, implement `ScenarioFiles` with a plugin you already use and pass it to `DevKit.init(scenarioFiles: ...)`. The menu then shows **Export as file** and **Import from file**. With [file_picker](https://pub.dev/packages/file_picker):
+
+```dart
+class FilePickerScenarioFiles implements ScenarioFiles {
+  const FilePickerScenarioFiles();
+
+  @override
+  Future<bool> save(String fileName, String json) async {
+    final bytes = utf8.encode(json);
+    final path = await FilePicker.platform.saveFile(
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: const ['json'],
+      bytes: bytes,
+    );
+    if (kIsWeb) return true; // the web downloads the file and returns no path
+    if (path == null) return false;
+    // On desktop the dialog only picks a path; mobile has already written it.
+    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) await File(path).writeAsBytes(bytes);
+    return true;
+  }
+
+  @override
+  Future<String?> pick() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['json'],
+      withData: true,
+    );
+    final bytes = result?.files.singleOrNull?.bytes;
+    return bytes == null ? null : utf8.decode(bytes);
+  }
+}
+```
+
+Flutter has no per-flavor dependencies, so a plugin you add for this is in every build. Leave `scenarioFiles` out if that matters to you; copy and paste work everywhere. On macOS, file_picker needs the `com.apple.security.files.user-selected.read-write` entitlement.
 
 ## For QA
 
