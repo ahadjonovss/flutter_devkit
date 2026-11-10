@@ -27,6 +27,7 @@ class ScenarioBanner extends StatelessWidget {
     // above its navigator.
     return BlocBuilder<ScenarioCubit, ScenarioState>(
       bloc: DevKit.scenarios.cubit,
+      buildWhen: (a, b) => a.count != b.count,
       builder: (context, state) {
         final visible = state.count > 0;
         return Column(
@@ -57,12 +58,17 @@ class _Strip extends StatelessWidget {
           bottom: false,
           child: SizedBox(
             width: double.infinity,
-            height: 22,
-            child: Center(
-              child: Text(
-                '$count route(s) overridden · tap to change',
-                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-              ),
+            height: 24,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.alt_route_rounded, size: 14, color: Colors.white),
+                const SizedBox(width: 6),
+                Text(
+                  '$count route(s) overridden · tap to change',
+                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
           ),
         ),

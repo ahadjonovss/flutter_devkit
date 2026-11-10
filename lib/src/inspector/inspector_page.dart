@@ -19,8 +19,7 @@ class InspectorPage extends StatelessWidget {
   static Future<void> open(BuildContext context) {
     return Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
-        builder: (_) => Theme(
-          data: devKitTheme,
+        builder: (_) => DevKitTheme(
           child: BlocProvider(create: (_) => InspectorCubit(DevKit.inspector), child: const InspectorPage()),
         ),
       ),
@@ -29,35 +28,53 @@ class InspectorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<InspectorCubit, InspectorState>(
-      builder: (context, state) {
-        final cubit = context.read<InspectorCubit>();
-        final visible = state.visible;
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('HTTP inspector'),
-            actions: [TextButton(onPressed: state.records.isEmpty ? null : cubit.clear, child: const Text('Clear'))],
+    final cubit = context.read<InspectorCubit>();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('HTTP inspector'),
+        actions: [
+          BlocSelector<InspectorCubit, InspectorState, bool>(
+            selector: (state) => state.records.isEmpty,
+            builder: (context, empty) => IconButton(
+              tooltip: 'Clear',
+              icon: const Icon(Icons.delete_sweep_outlined),
+              onPressed: empty ? null : cubit.clear,
+            ),
           ),
-          body: Column(
+          const SizedBox(width: 4),
+        ],
+      ),
+      body: BlocBuilder<InspectorCubit, InspectorState>(
+        builder: (context, state) {
+          final visible = state.visible;
+          return Column(
             children: [
               _FilterBar(state: state, cubit: cubit),
-              const Divider(height: 1),
+              const Divider(),
               Expanded(
                 child: visible.isEmpty
-                    ? const Center(child: Text('No requests'))
+                    ? DevKitEmpty(
+                        icon: Icons.wifi_tethering_off_rounded,
+                        message: state.records.isEmpty ? 'No requests yet' : 'No requests match the filters',
+                      )
                     : ListView.separated(
+                        padding: const EdgeInsets.only(bottom: 24),
                         itemCount: visible.length,
-                        separatorBuilder: (_, _) => const Divider(height: 1),
-                        itemBuilder: (context, index) => _RecordTile(
-                          record: visible[index],
-                          onTap: () => InspectorDetailPage.open(context, visible[index].id),
-                        ),
+                        separatorBuilder: (_, _) => const Divider(indent: 16, endIndent: 16),
+                        itemBuilder: (context, index) {
+                          final record = visible[index];
+                          return _RecordTile(
+                            key: ValueKey(record.id),
+                            record: record,
+                            onTap: () => InspectorDetailPage.open(context, record.id),
+                          );
+                        },
                       ),
               ),
             ],
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -8,35 +8,31 @@ class _HeadersSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mono = theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace');
+    final mono = devKitMono(theme.textTheme.bodySmall);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Headers', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 6),
-          if (headers.isEmpty)
-            Text('—', style: mono)
-          else
-            SelectableText.rich(
+    return DevKitSection(
+      title: 'Headers (${headers.length})',
+      trailing: headers.isEmpty
+          ? null
+          : _CopyButton(text: [for (final h in headers) '${h.key}: ${h.value}'].join('\n'), message: 'Headers copied'),
+      child: headers.isEmpty
+          ? Text('No headers', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline))
+          // One selectable text, so a drag can select several headers at once.
+          : SelectableText.rich(
               TextSpan(
                 children: [
                   for (final (index, header) in headers.indexed) ...[
                     if (index > 0) const TextSpan(text: '\n'),
                     TextSpan(
                       text: '${header.key}: ',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                     ),
                     TextSpan(text: header.value),
                   ],
                 ],
               ),
-              style: mono,
+              style: mono?.copyWith(height: 1.6),
             ),
-        ],
-      ),
     );
   }
 }

@@ -1,3 +1,9 @@
+## Unreleased
+
+- Redesigned DevKit pages: card-based dev panel, inspector list with status and method badges, a detail page with Overview / Request / Response tabs, JSON syntax colouring and per-section copy buttons, and a scenarios page with case chips instead of dropdowns.
+- DevKit pages follow the device's light or dark mode.
+- Smoother under heavy traffic: the inspector list updates at most every 100 ms, a request's body is pretty-printed once instead of on every rebuild, and choosing a scenario case rebuilds only that route's card.
+
 ## 0.1.2
 
 - README: install snippet points at the current version.

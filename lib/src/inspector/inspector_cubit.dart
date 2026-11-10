@@ -77,11 +77,34 @@ class InspectorState {
 class InspectorCubit extends Cubit<InspectorState> {
   /// Starts from the store's current records and follows its stream.
   InspectorCubit(this._store) : super(InspectorState(records: _store.records)) {
-    _subscription = _store.stream.listen((records) => emit(state.copyWith(records: records)));
+    _subscription = _store.stream.listen((_) => _refresh());
   }
+
+  /// Shortest gap between two list updates while requests keep arriving.
+  static const Duration _throttle = Duration(milliseconds: 100);
 
   final InspectorStore _store;
   late final StreamSubscription<List<HttpRecord>> _subscription;
+  Timer? _timer;
+  bool _pending = false;
+
+  // Every request changes the store twice, so a burst of traffic would rebuild
+  // the list for each one. The first change shows at once; changes arriving
+  // within [_throttle] of it are folded into a single update.
+  void _refresh() {
+    if (_timer != null) {
+      _pending = true;
+      return;
+    }
+    emit(state.copyWith(records: _store.records));
+    _timer = Timer(_throttle, () {
+      _timer = null;
+      if (_pending && !isClosed) {
+        _pending = false;
+        _refresh();
+      }
+    });
+  }
 
   /// Shows only the records that match [status].
   void setStatus(StatusFilter status) => emit(state.copyWith(status: status));
@@ -97,6 +120,7 @@ class InspectorCubit extends Cubit<InspectorState> {
 
   @override
   Future<void> close() async {
+    _timer?.cancel();
     await _subscription.cancel();
     return super.close();
   }
