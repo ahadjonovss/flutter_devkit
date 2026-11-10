@@ -1,11 +1,23 @@
 part of '../scenario_page.dart';
 
 class _RouteTile extends StatelessWidget {
-  const _RouteTile({required this.route, required this.selectedCaseId, required this.onChanged});
+  const _RouteTile({
+    required this.route,
+    required this.selectedCaseId,
+    required this.onChanged,
+    required this.custom,
+    required this.onDeleteCase,
+    required this.onDeleteRoute,
+  });
 
   final ScenarioRoute route;
   final String? selectedCaseId;
   final ValueChanged<String?> onChanged;
+
+  /// Whether QA added the route at runtime, so it can be deleted.
+  final bool custom;
+  final ValueChanged<String> onDeleteCase;
+  final VoidCallback onDeleteRoute;
 
   static final RegExp _methodPrefix = RegExp(r'^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+', caseSensitive: false);
 
@@ -55,9 +67,28 @@ class _RouteTile extends StatelessWidget {
                   icon: const Icon(Icons.restart_alt_rounded, size: 20),
                   onPressed: () => onChanged(null),
                 ),
+              if (custom)
+                PopupMenuButton<void Function()>(
+                  tooltip: 'Edit',
+                  icon: const Icon(Icons.more_vert_rounded, size: 20),
+                  onSelected: (action) => action(),
+                  itemBuilder: (_) => [
+                    for (final scenario in route.cases)
+                      PopupMenuItem(value: () => onDeleteCase(scenario.id), child: Text('Delete "${scenario.label}"')),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: onDeleteRoute,
+                      child: Text('Delete route', style: TextStyle(color: theme.colorScheme.error)),
+                    ),
+                  ],
+                ),
             ],
           ),
-          Text(route.id, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
+          // Custom ids are generated and mean nothing to QA.
+          if (custom)
+            DevKitBadge(label: 'CUSTOM', color: theme.colorScheme.tertiary)
+          else
+            Text(route.id, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 6,
@@ -66,7 +97,8 @@ class _RouteTile extends StatelessWidget {
               _CaseChip(label: 'Real backend', selected: !overridden, onSelected: () => onChanged(null)),
               for (final scenario in route.cases)
                 _CaseChip(
-                  label: scenario.label,
+                  label: scenario.mock == null ? scenario.label : '${scenario.label} · ${scenario.mock!.statusCode}',
+                  icon: scenario.mock == null ? null : Icons.inventory_2_outlined,
                   selected: selected?.id == scenario.id,
                   warning: true,
                   onSelected: () => onChanged(scenario.id),
@@ -102,9 +134,18 @@ class _RouteTile extends StatelessWidget {
 }
 
 class _CaseChip extends StatelessWidget {
-  const _CaseChip({required this.label, required this.selected, required this.onSelected, this.warning = false});
+  const _CaseChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+    this.warning = false,
+    this.icon,
+  });
 
   final String label;
+
+  /// Marks a case answered by a local mock.
+  final IconData? icon;
   final bool selected;
   final bool warning;
   final VoidCallback onSelected;
@@ -114,6 +155,7 @@ class _CaseChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final color = warning ? devKitWarningColor : scheme.primary;
     return ChoiceChip(
+      avatar: icon == null ? null : Icon(icon, size: 16, color: selected ? color : scheme.onSurfaceVariant),
       label: Text(label),
       selected: selected,
       onSelected: (_) => onSelected(),

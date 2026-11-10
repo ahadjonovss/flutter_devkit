@@ -1,6 +1,6 @@
 name: flutter_devkit
 description: In-app developer tools for Flutter apps with Dio — a dev panel, an HTTP inspector, and per-route backend scenario switching for QA.
-version: 0.1.2
+version: 0.2.0
 homepage: https://github.com/ahadjonovss/flutter_devkit
 repository: https://github.com/ahadjonovss/flutter_devkit
 issue_tracker: https://github.com/ahadjonovss/flutter_devkit/issues
@@ -20,6 +20,8 @@ dependencies:
     sdk: flutter
   dio: ^5.9.0
   flutter_bloc: ^9.1.1
+  shared_preferences: ^2.5.5
+  file_picker: ^10.3.3
 
 dev_dependencies:
   flutter_test:

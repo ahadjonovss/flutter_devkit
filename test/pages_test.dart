@@ -1,12 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_devkit/flutter_devkit.dart';
+import 'package:flutter_devkit/src/inspector/inspector_detail_page.dart';
 import 'package:flutter_devkit/src/scenarios/scenario_page.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   final navigatorKey = GlobalKey<NavigatorState>();
 
   setUpAll(() {
+    SharedPreferences.setMockInitialValues({});
     DevKit.init(enabled: true, navigatorKey: navigatorKey, log: (_) {});
     DevKit.scenarios.register([
       ScenarioRoute(
@@ -72,5 +76,26 @@ void main() {
     await tester.tap(find.widgetWithText(Tab, 'Response'));
     await tester.pumpAndSettle();
     expect(find.textContaining('"active": true', findRichText: true), findsOneWidget);
+  });
+
+  testWidgets('a scenario added from a request answers with the recorded response', (tester) async {
+    await pumpApp(tester);
+    InspectorDetailPage.open(navigatorKey.currentContext!, 0);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add scenario'));
+    await tester.pumpAndSettle();
+    expect(find.text('New scenario'), findsOneWidget);
+
+    await tester.tap(find.text('Save scenario'));
+    await tester.pumpAndSettle();
+    final route = DevKit.scenarios.customRoutes.single;
+    expect(route.label, 'GET /users');
+    expect(route.cases.single.mock!.statusCode, 200);
+    expect(DevKit.scenarios.cubit.state.byRoute[route.id], route.cases.single.id);
+
+    final dio = Dio(BaseOptions(baseUrl: 'https://h.test'))..interceptors.add(ScenarioInterceptor());
+    final response = await tester.runAsync(() => dio.get<Map<String, dynamic>>('/users'));
+    expect(response!.data!['users'], hasLength(1));
+    DevKit.scenarios.removeCustomRoute(route.id);
   });
 }

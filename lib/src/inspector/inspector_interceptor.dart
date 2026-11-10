@@ -34,22 +34,24 @@ class InspectorInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (_store.enabled) {
-      final id = _store.nextId();
-      options.extra[_idKey] = id;
-      _store.add(
-        HttpRecord(
-          id: id,
-          method: options.method,
-          url: _redact(options.uri.toString()),
-          startedAt: DateTime.now(),
-          requestHeaders: _headers(options.headers.map((k, v) => MapEntry(k, '$v'))),
-          requestBody: _body(options.data),
-          scenario: options.extra[ScenarioInterceptor.extraKey] as String?,
-        ),
-      );
-    }
+    if (_store.enabled) _start(options);
     handler.next(options);
+  }
+
+  HttpRecord _start(RequestOptions options) {
+    final id = _store.nextId();
+    options.extra[_idKey] = id;
+    final record = HttpRecord(
+      id: id,
+      method: options.method,
+      url: _redact(options.uri.toString()),
+      startedAt: DateTime.now(),
+      requestHeaders: _headers(options.headers.map((k, v) => MapEntry(k, '$v'))),
+      requestBody: _body(options.data),
+      scenario: options.extra[ScenarioInterceptor.extraKey] as String?,
+    );
+    _store.add(record);
+    return record;
   }
 
   @override
@@ -67,8 +69,14 @@ class InspectorInterceptor extends Interceptor {
 
   void _complete(RequestOptions options, Response? response, {String? error}) {
     final id = options.extra[_idKey];
-    if (id is! int) return;
-    final record = _store.byId(id);
+    final HttpRecord? record;
+    if (id is int) {
+      record = _store.byId(id);
+    } else {
+      // An earlier interceptor answered before this one saw the request, e.g.
+      // a scenario mock: record it now.
+      record = _store.enabled ? _start(options) : null;
+    }
     if (record == null) return;
     _store.update(
       record.complete(

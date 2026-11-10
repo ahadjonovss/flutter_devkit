@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_devkit/src/inspector/inspector_store.dart';
 import 'package:flutter_devkit/src/panel/devkit_item.dart';
 import 'package:flutter_devkit/src/panel/devkit_panel.dart';
+import 'package:flutter_devkit/src/scenarios/scenario_storage.dart';
 import 'package:flutter_devkit/src/scenarios/scenarios.dart';
 
 /// Receives the messages DevKit logs, such as each applied scenario.
@@ -43,11 +46,16 @@ abstract final class DevKit {
   ///   context.
   /// - [log]: where DevKit messages go. Defaults to [debugPrint].
   /// - [inspectorCapacity]: how many requests [inspector] keeps (default 100).
+  /// - [scenarioStorage]: where scenarios added at runtime are saved. Defaults
+  ///   to `SharedPreferences`.
+  ///
+  /// When enabled, starts loading the saved scenarios; they appear once read.
   static void init({
     required bool enabled,
     GlobalKey<NavigatorState>? navigatorKey,
     DevKitLogger? log,
     int? inspectorCapacity,
+    ScenarioStorage? scenarioStorage,
   }) {
     if (_initialized) {
       throw StateError('DevKit.init() can only be called once.');
@@ -57,6 +65,11 @@ abstract final class DevKit {
     _navigatorKey = navigatorKey;
     if (log != null) _log = log;
     if (inspectorCapacity != null) inspector.capacity = inspectorCapacity;
+    if (scenarioStorage != null) scenarios.storage = scenarioStorage;
+    scenarios.log = DevKit.log;
+    if (enabled) {
+      unawaited(scenarios.load().catchError((Object e) => DevKit.log('Could not load saved scenarios: $e')));
+    }
   }
 
   /// Adds [item] to the dev panel. Ignored while DevKit is disabled.

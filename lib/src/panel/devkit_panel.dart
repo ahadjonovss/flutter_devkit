@@ -38,7 +38,6 @@ class DevKitPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = DevKit.items;
-    final hasScenarios = DevKit.scenarios.registry.routes.isNotEmpty;
     final hasInspector = DevKit.inspector.attached;
     final theme = Theme.of(context);
 
@@ -73,51 +72,50 @@ class DevKitPanel extends StatelessWidget {
                 ),
               ],
             ),
-            if (hasScenarios || hasInspector) ...[
-              const _SectionLabel('Tools'),
-              _Group(
-                children: [
-                  if (hasScenarios)
-                    _ToolTile(
-                      icon: Icons.alt_route_rounded,
-                      color: devKitWarningColor,
-                      title: 'Backend scenarios',
-                      subtitle: BlocBuilder<ScenarioCubit, ScenarioState>(
-                        bloc: DevKit.scenarios.cubit,
-                        buildWhen: (a, b) => a.count != b.count,
-                        builder: (_, state) => Text(
-                          state.count == 0 ? 'All routes hit the real backend' : '${state.count} route(s) overridden',
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        ScenarioPage.open(hostContext);
+            const _SectionLabel('Tools'),
+            _Group(
+              children: [
+                _ToolTile(
+                  icon: Icons.alt_route_rounded,
+                  color: devKitWarningColor,
+                  title: 'Backend scenarios',
+                  subtitle: BlocBuilder<ScenarioCubit, ScenarioState>(
+                    bloc: DevKit.scenarios.cubit,
+                    buildWhen: (a, b) => a.count != b.count,
+                    builder: (_, state) => Text(switch (state.count) {
+                      0 when DevKit.scenarios.registry.routes.isEmpty => 'Add or import scenarios',
+                      0 => 'All routes hit the real backend',
+                      final count => '$count route(s) overridden',
+                    }),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScenarioPage.open(hostContext);
+                  },
+                ),
+                if (hasInspector)
+                  _ToolTile(
+                    icon: Icons.network_check_rounded,
+                    color: theme.colorScheme.primary,
+                    title: 'HTTP inspector',
+                    subtitle: StreamBuilder<List<HttpRecord>>(
+                      initialData: DevKit.inspector.records,
+                      stream: DevKit.inspector.stream,
+                      builder: (_, snapshot) {
+                        final records = snapshot.data!;
+                        final errors = records.where((r) => r.isError).length;
+                        return Text(
+                          ['${records.length} request(s) captured', if (errors > 0) '$errors error(s)'].join(' · '),
+                        );
                       },
                     ),
-                  if (hasInspector)
-                    _ToolTile(
-                      icon: Icons.network_check_rounded,
-                      color: theme.colorScheme.primary,
-                      title: 'HTTP inspector',
-                      subtitle: StreamBuilder<List<HttpRecord>>(
-                        initialData: DevKit.inspector.records,
-                        stream: DevKit.inspector.stream,
-                        builder: (_, snapshot) {
-                          final records = snapshot.data!;
-                          final errors = records.where((r) => r.isError).length;
-                          return Text(
-                            ['${records.length} request(s) captured', if (errors > 0) '$errors error(s)'].join(' · '),
-                          );
-                        },
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        InspectorPage.open(hostContext);
-                      },
-                    ),
-                ],
-              ),
-            ],
+                    onTap: () {
+                      Navigator.pop(context);
+                      InspectorPage.open(hostContext);
+                    },
+                  ),
+              ],
+            ),
             if (items.isNotEmpty) ...[const _SectionLabel('App'), ..._buildItems(context, items)],
           ],
         ),

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_devkit/src/devkit.dart';
 import 'package:flutter_devkit/src/inspector/http_record.dart';
 import 'package:flutter_devkit/src/panel/devkit_theme.dart';
+import 'package:flutter_devkit/src/scenarios/scenario_form_page.dart';
 
 part 'components/body_view.dart';
 part 'components/headers_section.dart';
@@ -85,6 +86,11 @@ class _InspectorDetailPageState extends State<InspectorDetailPage> {
             ],
           ),
           actions: [
+            IconButton(
+              tooltip: 'Add scenario',
+              icon: const Icon(Icons.add_road_rounded),
+              onPressed: () => ScenarioFormPage.open(context, record: record),
+            ),
             IconButton(
               tooltip: 'Copy as cURL',
               icon: const Icon(Icons.terminal_rounded),

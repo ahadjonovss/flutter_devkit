@@ -4,11 +4,11 @@ In-app developer tools for Flutter apps that talk to their backend through [Dio]
 
 - a **dev panel** with your own items,
 - an **HTTP inspector** that records requests and responses,
-- **backend scenarios**: QA picks, per route, which response the backend should return, without a special build.
+- **backend scenarios**: QA picks, per route, which response the backend should return, without a special build — and can add their own on the device, with a mocked response, from any recorded request.
 
 ```yaml
 dependencies:
-  flutter_devkit: ^0.1.2
+  flutter_devkit: ^0.2.0
 ```
 
 ```dart
@@ -27,6 +27,7 @@ DevKit.init(
   navigatorKey: navigatorKey,      // used by the banner to open the scenarios page
   log: (m) => myLogger.warning(m), // optional, defaults to debugPrint
   inspectorCapacity: 200,          // optional, how many requests the inspector keeps (default 100)
+  scenarioStorage: myStorage,      // optional, where scenarios added on the device are saved (default SharedPreferences)
 );
 ```
 
@@ -117,10 +118,34 @@ Rules:
 - If a selected case no longer exists, the request passes untouched.
 - Every overridden request is logged, and tagged in `options.extra['devkit.scenario']` / `response.extra['devkit.scenario']`.
 
+A case can also answer locally instead of sending headers: give it a `mock`, and matching requests never reach the backend.
+
+```dart
+ScenarioCase(
+  id: 'empty',
+  label: 'Empty list',
+  mock: ScenarioMock(statusCode: 200, body: '{"items": []}', delay: Duration(milliseconds: 800)),
+)
+```
+
+The body is decoded according to the request's `responseType` (JSON by default). A status that fails `validateStatus` throws a `DioException.badResponse`, like a real error. Mocked responses carry `response.extra['devkit.scenario.mocked'] == true` and still show up in the HTTP inspector.
+
+### Adding scenarios on the device
+
+QA can add scenarios without touching the code:
+
+- In the HTTP inspector, open a request and tap **Add scenario**. The form is filled in from the request: method, path, and the recorded status, headers and body. The case is either a **mock response** (edit the status, headers, body and delay) or a set of **headers** for the backend. **Add scenario** on the scenarios page opens the same form, empty.
+- A case whose method and path match an existing custom route joins that route. Otherwise a new route is created. Custom routes are tagged **CUSTOM**, can be deleted from their menu, and win over a route from the code that matches the same request.
+- Custom routes are saved with `SharedPreferences` and come back on the next launch (pass `scenarioStorage` to `DevKit.init` to keep them somewhere else). Selections are still not saved.
+- The scenarios page menu has **Export as file** (`devkit_scenarios.json`), **Import from file** and **Paste JSON**, so a set of scenarios can be shared across devices and testers. When an imported route has the id of a custom route, it replaces that route. When its id belongs to a route from the code, it is skipped.
+- The same works from code: `DevKit.scenarios.exportCustom()` and `importCustom(json)`.
+
+Files are picked and saved with [file_picker](https://pub.dev/packages/file_picker). On macOS the app needs the `com.apple.security.files.user-selected.read-write` entitlement.
+
 ## For QA
 
 1. Open the dev panel (however your app wires `DevKit.show`) → **Backend scenarios**.
-2. Pick a case for the route you want to test. "Real backend" turns the override off.
+2. Pick a case for the route you want to test. "Real backend" turns the override off. To make your own, open a request in the HTTP inspector and tap **Add scenario**.
 3. An orange strip at the top shows how many routes are overridden. Tap it to change or **Reset all**.
 4. The selection applies to every matching request until you reset it or restart the app.
 5. Before filing a bug, check the strip: if it is visible, the response may be forced. Overridden requests are marked in the log and in the HTTP inspector.

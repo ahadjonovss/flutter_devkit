@@ -38,6 +38,31 @@ class ScenarioRegistry {
     return null;
   }
 
+  /// Every registered route matching the request in [options], in
+  /// registration order.
+  Iterable<ScenarioRoute> allMatches(RequestOptions options) {
+    final path = options.uri.path;
+    return _routes.where((route) => route.match.matches(options.method, path));
+  }
+
+  /// Puts [route] in place of the registered route with the same id, or adds
+  /// it when there is none.
+  void put(ScenarioRoute route) {
+    final index = _routes.indexWhere((r) => r.id == route.id);
+    if (index == -1) {
+      _routes.add(route);
+    } else {
+      _routes[index] = route;
+    }
+  }
+
+  /// Removes the route with [id]; returns whether there was one.
+  bool remove(String id) {
+    final before = _routes.length;
+    _routes.removeWhere((r) => r.id == id);
+    return _routes.length != before;
+  }
+
   /// The route with [id], or null.
   ScenarioRoute? byId(String id) {
     for (final route in _routes) {

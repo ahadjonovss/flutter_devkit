@@ -18,4 +18,5 @@ export 'package:flutter_devkit/src/scenarios/scenario_banner.dart';
 export 'package:flutter_devkit/src/scenarios/scenario_cubit.dart';
 export 'package:flutter_devkit/src/scenarios/scenario_interceptor.dart';
 export 'package:flutter_devkit/src/scenarios/scenario_registry.dart';
+export 'package:flutter_devkit/src/scenarios/scenario_storage.dart';
 export 'package:flutter_devkit/src/scenarios/scenarios.dart';

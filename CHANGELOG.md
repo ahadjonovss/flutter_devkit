@@ -1,5 +1,13 @@
-## Unreleased
+## 0.2.0
 
+- Scenarios can be added on the device: **Add scenario** on a recorded request (or on the scenarios page) opens a form prefilled from the request. A case is either a mock response or request headers.
+- `ScenarioMock`: a case can answer locally with a status, headers, body and delay, without calling the backend. `ScenarioCase.headers` is now optional.
+- Custom scenarios are saved with `SharedPreferences` (or a `ScenarioStorage` passed to `DevKit.init`) and load on start.
+- Scenarios page: export to a `.json` file, import from a file or pasted JSON, delete custom routes and cases.
+- A selected custom route wins over a route from the code that matches the same request. `ScenarioRegistry.allMatches`, `put` and `remove` were added.
+- Scenarios, cases and matchers convert to and from JSON (`toJson` / `fromJson`). `RouteMatcher` exposes `kind` and `pattern`.
+- The panel always shows **Backend scenarios**, so scenarios can be added before any are registered.
+- New dependencies: `shared_preferences`, `file_picker`.
 - Redesigned DevKit pages: card-based dev panel, inspector list with status and method badges, a detail page with Overview / Request / Response tabs, JSON syntax colouring and per-section copy buttons, and a scenarios page with case chips instead of dropdowns.
 - DevKit pages follow the device's light or dark mode.
 - Smoother under heavy traffic: the inspector list updates at most every 100 ms, a request's body is pretty-printed once instead of on every rebuild, and choosing a scenario case rebuilds only that route's card.
