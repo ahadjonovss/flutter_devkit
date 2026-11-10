@@ -8,7 +8,7 @@ In-app developer tools for Flutter apps that talk to their backend through [Dio]
 
 ```yaml
 dependencies:
-  flutter_devkit: ^0.1.0
+  flutter_devkit: ^0.1.2
 ```
 
 ```dart

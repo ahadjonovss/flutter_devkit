@@ -1,3 +1,7 @@
+## 0.1.2
+
+- README: install snippet points at the current version.
+
 ## 0.1.1
 
 - Document the whole public API.
